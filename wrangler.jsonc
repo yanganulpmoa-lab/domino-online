@@ -1,0 +1,9 @@
+{
+  "name": "domino-online",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-23",
+  "workers_dev": true,
+  "assets": {"directory": "./public", "binding": "ASSETS", "run_worker_first": ["/api"]},
+  "durable_objects": {"bindings": [{"name": "ROOMS", "class_name": "DominoRoom"}]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["DominoRoom"]}]
+}

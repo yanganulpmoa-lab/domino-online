@@ -1,20 +1,19 @@
 # Domino — Meja Teman
 
-Game domino sambung untuk 2–4 pemain, tanpa paket Python tambahan.
+Game domino sambung online untuk 2–4 pemain, menggunakan Cloudflare Workers dan Durable Objects dengan penyimpanan SQLite yang mendukung Workers Free.
 
-## Jalankan
+[Publikasikan ke Cloudflare](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fyanganulpmoa-lab%2Fdomino-online)
 
-Di folder ini jalankan `python server.py`, kemudian buka http://localhost:8787.
-Untuk komputer ini jika perintah python tidak aktif, gunakan:
+## Publikasi gratis
 
-    & 'D:\DASHBOARD PLN\dashboard-pelanggan\dashboard-pelanggan\.venv\Scripts\python.exe' 'D:\DOMINO\server.py'
+Buka tautan di atas, login Cloudflare, pilih akun dengan Workers Free, lalu ikuti proses deploy. Domain workers.dev disediakan Cloudflare, tidak perlu membeli domain. Jika diminta menghubungkan GitHub, batasi akses ke repositori domino-online. Jangan aktifkan paket berbayar.
 
-Host membuat room dan membagikan tautan atau kode kepada teman. Teman pada jaringan yang sama memakai alamat IP komputer server dan port 8787, bukan localhost. Akses jaringan bergantung pada pengaturan firewall komputer.
+Konfigurasi wrangler.jsonc membuat Worker, aset halaman, dan binding ROOMS otomatis. Build tidak diperlukan; perintah deploy: npx wrangler deploy.
 
-## Hosting
+Kuota gratis tetap berlaku. Polling dilakukan setiap 4 detik saat tab aktif. Room kedaluwarsa 7 hari setelah aksi terakhir (buat/gabung/mulai/main/ambil/lewati), bukan setelah polling. Kode room 12 karakter. Simpan tab untuk kembali ke kursi yang sama; keluar tampilan tidak menghapus kursi. Host bisa memulai ronde baru setelah ronde selesai.
 
-render.yaml menyiapkan layanan Render dengan plan free. Publikasi belum dilakukan; perlu akun hosting dan repositori sumber. Jangan pilih paket berbayar. Room hanya berada di memori dan hilang ketika server dimulai ulang. Server bawaan ini untuk permainan ringan bersama teman.
+## Pengembangan
 
-## Aturan
+Gunakan Node.js 22 atau lebih baru. Jalankan npm install, npm test, kemudian npm run dev. Tampilan Cloudflare berada di public/index.html, aturan di src/game.js, server di src/worker.js.
 
-Setiap pemain mendapat 7 kartu. Host mulai pertama. Sambungkan angka pada ujung meja; ambil stok jika tidak punya kartu cocok, atau lewati jika stok habis. Kartu habis menang. Jika semua pemain tidak bisa jalan, jumlah titik paling kecil menang (seri diperbolehkan). Host bisa memulai ronde baru. Keluar tampilan tidak menghapus kursi pemain; tidak ada pengambilalihan otomatis jika pemain terputus.
+server.py dan index.html di direktori utama adalah versi Python lokal terdahulu; render.yaml hanya alternatif Render. Deploy Cloudflare tidak memakai file tersebut.
