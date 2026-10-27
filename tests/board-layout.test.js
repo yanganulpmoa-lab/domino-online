@@ -6,7 +6,7 @@ test('balak melintang, kartu biasa mengikuti arah jalur',()=>{
  for(const width of [180,260,360,600,1000])for(const deck of [tiles,Array.from({length:28},()=>[5,5])]){
   const layout=layoutBoard(deck,width);
   for(const p of layout.positions){
-   assert.equal(p.width>p.height,p.double?p.direction==='down':p.direction!=='down');
+   assert.equal(p.width>p.height,p.double?['down','up'].includes(p.direction):!['down','up'].includes(p.direction));
    assert.ok(p.x-p.width/2>=0);assert.ok(p.x+p.width/2<=width);assert.ok(p.y-p.height/2>=0);assert.ok(p.y+p.height/2<=layout.height);
   }
  }
@@ -16,20 +16,20 @@ test('semua kartu bersentuhan, tanpa celah atau tumpang tindih',()=>{
   const l=layoutBoard(deck,width);
   for(let i=0;i<l.positions.length;i++)for(let j=i+1;j<l.positions.length;j++){
    const a=l.positions[i],b=l.positions[j],dx=Math.abs(a.x-b.x)-(a.width+b.width)/2,dy=Math.abs(a.y-b.y)-(a.height+b.height)/2;
-   assert.ok(dx>=0||dy>=0,'Kartu bertumpuk '+i+':'+j);
-   if(j===i+1)assert.ok((dx===0&&dy<0)||(dy===0&&dx<0),'Kartu tidak bersentuhan '+i+':'+j);
+   assert.ok(dx>=-1e-7||dy>=-1e-7,'Kartu bertumpuk '+i+':'+j);
+   if(j===i+1)assert.ok((Math.abs(dx)<1e-7&&dy<0)||(Math.abs(dy)<1e-7&&dx<0),'Kartu tidak bersentuhan '+i+':'+j);
   }
  }
 });
-test('belokan menyambung di tengah separuh kartu horizontal',()=>{
- const l=layoutBoard(Array.from({length:15},()=>[1,6]),260);
- let found=false;
- for(let i=1;i<l.positions.length;i++){
-  const a=l.positions[i-1],b=l.positions[i];
-  if(a.direction!=='down'&&b.direction==='down'){
-   found=true;assert.equal(b.y-b.height/2,a.y+a.height/2);
-   assert.equal(Math.abs(b.x-a.x),a.width/2-l.short/2);
-  }
+test('balak 5 tetap di pusat dan seluruh rantai muat tanpa geser',()=>{
+ for(const width of [180,260,360,600,1000])for(const height of [210,300,340])for(let anchor=0;anchor<28;anchor++){
+  const deck=Array.from({length:28},()=>[1,6]);deck[anchor]=[5,5];
+  const l=layoutBoard(deck,width,height);assert.equal(l.positions[anchor].x,width/2);assert.equal(l.positions[anchor].y,height/2);assert.equal(l.height,height);
+  for(const p of l.positions){assert.ok(p.x-p.width/2>=-1e-7);assert.ok(p.x+p.width/2<=width+1e-7);assert.ok(p.y-p.height/2>=-1e-7);assert.ok(p.y+p.height/2<=height+1e-7);}
  }
- assert.ok(found);
+});
+test('penambahan kartu pada kedua ujung tidak menggeser pusat pembuka',()=>{
+ const deck=[[1,5],[5,5],[5,2]];const l=layoutBoard(deck,500);
+ assert.equal(l.positions[1].x,250);assert.equal(l.positions[1].y,150);
+ assert.ok(l.positions[0].x<250);assert.ok(l.positions[2].x>250);
 });

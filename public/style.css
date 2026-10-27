@@ -17,3 +17,14 @@
 /* Flat edges meet directly; no spacer grid or connector strokes. */
 #board .board-tile{border-radius:3px;box-shadow:none;border:1px solid #bd2016}
 #board .board-tile.endpoint{box-shadow:0 0 16px #afff8b88}
+/* The opening double stays centered and both growing arms fit in the same table. */
+#board{overflow:hidden;min-height:210px;display:flex;align-items:center;justify-content:center}
+#board .board-tile{flex-shrink:0}
+#sound{font-size:13px;padding:9px 12px;white-space:nowrap}
+#victory{border:1px solid #ffce5780;border-radius:28px;padding:0;width:min(92vw,650px);max-height:90vh;color:#fff1ce;background:radial-gradient(ellipse at 50% 0,#66511d,#183829 55%,#0c1b14);box-shadow:0 0 100px #ffce5744,0 30px 100px #0008;overflow:visible}
+#victory::backdrop{background:#04100bd9;backdrop-filter:blur(7px)}
+.victory-content{text-align:center;padding:38px 24px 40px;position:relative;z-index:2;overflow-wrap:anywhere}.victory-content h1{font-size:clamp(35px,7vw,66px);letter-spacing:-1px;color:#ffdc71;margin:16px 0}.victory-content h2{font-size:clamp(22px,4vw,34px);margin:0}.victory-content p{margin:15px 0 24px}.victory-actions{justify-content:center}.trophy{font-size:85px;filter:drop-shadow(0 0 28px #ffc40088);animation:trophy-pop .8s cubic-bezier(.2,1.4,.4,1) both}.victory-content .eyebrow{display:block;margin-top:15px}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}#confetti i{position:absolute;top:-20px;left:var(--x);width:9px;height:16px;border-radius:2px;animation:confetti-fall 4s var(--delay) ease-in forwards;opacity:0}
+@keyframes confetti-fall{0%{opacity:1;transform:translate(0,-20px) rotate(0)}90%{opacity:1}100%{opacity:0;transform:translate(var(--drift),105vh) rotate(var(--spin))}}
+@keyframes trophy-pop{0%{transform:translateY(35px) scale(.2) rotate(-20deg);opacity:0}100%{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.trophy,#confetti i{animation:none!important}}

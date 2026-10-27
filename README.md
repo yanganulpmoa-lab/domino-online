@@ -27,3 +27,5 @@ public/ berisi antarmuka dan kartu berbasis CSS. src/game.js berisi aturan dan t
 Buat room baru setelah pembaruan aturan, terutama untuk room lama yang dibuka dengan dadu.
 
 Susunan meja mengikuti jalur berbelok: kartu biasa sejajar arah jalur dan balak tegak lurus terhadap jalur. Tata letak menyesuaikan lebar layar; kedua ujung tetap bisa disorot sebagai tujuan drag.
+
+Balak 5 tetap berada di tengah meja. Kedua ujung tumbuh menjauhi pusat, dengan skala otomatis agar seluruh rantai muat tanpa menggeser meja. Suara sintetis untuk setiap kartu masuk dan lewat giliran, serta fanfare, piala dan confetti untuk kemenangan. Tombol suara menyimpan preferensi mute. Audio aktif setelah interaksi pertama sesuai aturan browser; animasi menghormati pengaturan pengurangan gerakan.
