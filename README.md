@@ -1,23 +1,27 @@
 # Domino — Meja Teman
 
-Game domino sambung online untuk 2 atau 4 pemain, menggunakan Cloudflare Workers dan Durable Objects dengan penyimpanan SQLite yang mendukung Workers Free.
+Domino online untuk tepat 2 atau 4 pemain di Cloudflare Workers Free dan Durable Objects SQLite.
 
-[Publikasikan ke Cloudflare](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fyanganulpmoa-lab%2Fdomino-online)
+## Aturan terbaru
 
-## Publikasi gratis
+- Semua 28 kartu dibagikan habis: 14 kartu per orang untuk 2 pemain, atau 7 kartu untuk 4 pemain.
+- Pemilik balak 5 selalu membuka dan wajib memasangkan balak 5. Tidak ada dadu.
+- Setiap giliran 20 detik, dihitung server. Jika tidak ada kartu cocok, server otomatis melewati giliran tanpa menunggu timer.
+- Waktu habis berarti lewat. Khusus pembuka, balak 5 otomatis dipasang saat waktu habis agar ronde dapat dimulai.
+- Hanya kartu yang dapat dimainkan yang menyala. Seret kartu ke ujung meja yang disorot. Klik kartu lalu klik ujung meja juga didukung untuk keyboard/sentuhan.
+- Tidak ada stok atau ambil kartu. Kartu habis lebih dulu menang; jika semua buntu, jumlah titik terendah menang (seri diperbolehkan).
+- Timer dijalankan Durable Object Alarm meski tab ditutup. Room kedaluwarsa 7 hari setelah aksi pemain terakhir. Pemain yang keluar tetap memiliki kursi; simpan tab untuk melanjutkan sesi.
 
-Buka tautan di atas, login Cloudflare, pilih akun dengan Workers Free, lalu ikuti proses deploy. Domain workers.dev disediakan Cloudflare, tidak perlu membeli domain. Jika diminta menghubungkan GitHub, batasi akses ke repositori domino-online. Jangan aktifkan paket berbayar.
+## Publikasi
 
-Konfigurasi wrangler.jsonc membuat Worker, aset halaman, dan binding ROOMS otomatis. Build tidak diperlukan; perintah deploy: npx wrangler deploy.
+[Deploy ke Cloudflare](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Fyanganulpmoa-lab%2Fdomino-online)
 
-Kuota gratis tetap berlaku. Polling dilakukan setiap 1,5 detik saat tab aktif. Room kedaluwarsa 7 hari setelah aksi terakhir (buat/gabung/mulai/main/ambil/lewati), bukan setelah polling. Kode room 12 karakter. Simpan tab untuk kembali ke kursi yang sama; keluar tampilan tidak menghapus kursi. Host bisa memulai ronde baru setelah ronde selesai.
+Pilih Workers Free. Tidak perlu membeli domain; gunakan workers.dev. Kuota paket gratis tetap berlaku. Untuk pembaruan otomatis, hubungkan repositori yang sama ke Worker dengan branch main dan deploy command npx wrangler deploy.
 
 ## Pengembangan
 
-Gunakan Node.js 22 atau lebih baru. Jalankan npm install, npm test, kemudian npm run dev. Tampilan Cloudflare berada di public/index.html, aturan di src/game.js, server di src/worker.js.
+Node.js 22 atau lebih baru. Jalankan npm install, npm test, lalu npm run dev. npm run deploy memublikasikan ke akun Cloudflare yang sudah login.
 
-server.py dan index.html di direktori utama adalah versi Python lokal terdahulu; render.yaml hanya alternatif Render. Deploy Cloudflare tidak memakai file tersebut.
+public/ berisi antarmuka dan kartu berbasis CSS. src/game.js berisi aturan dan timer, src/worker.js berisi server serta penyimpanan room. Pengujian ada di tests/. server.py dan index.html di root adalah versi Python terdahulu; tidak dipakai Cloudflare. render.yaml hanya konfigurasi hosting alternatif lama.
 
-## Aturan ronde
-
-Hanya 2 atau 4 pemain. Semua 28 kartu dibagikan habis (14 atau 7 per pemain), tanpa stok atau ambil kartu. Dadu acak 1–6 berputar di awal setiap ronde. Pemilik balak sesuai hasil dadu wajib membuka dengan balak itu. Tidak dapat bermain berarti lewati giliran; server menolak lewat jika masih ada kartu cocok. Kartu habis pertama menang; jika semua buntu, total titik terendah menang.
+Buat room baru setelah pembaruan aturan, terutama untuk room lama yang dibuka dengan dadu.
