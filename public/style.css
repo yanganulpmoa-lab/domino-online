@@ -13,3 +13,7 @@
 .table:after{content:'';display:block;clear:both}
 #board{order:1}
 @media(max-width:620px){.table{padding:12px 10px}.drop{height:50px;padding:5px;gap:8px}.drop small{font-size:9px}}
+
+/* Flat edges meet directly; no spacer grid or connector strokes. */
+#board .board-tile{border-radius:3px;box-shadow:none;border:1px solid #bd2016}
+#board .board-tile.endpoint{box-shadow:0 0 16px #afff8b88}

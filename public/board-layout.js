@@ -1,18 +1,32 @@
-// Geometry is independent of the DOM so resizing and both open ends use the same path.
+// Touching domino rectangles, including side-to-half contacts at each elbow.
 export function layoutBoard(tiles,width) {
- const short=width<460?26:34,long=short*2,gap=8,padding=12;
- const columns=Math.max(2,Math.floor((width-padding*2)/(long+gap)));
- const cell=long+gap,rowStep=long+18;
- const positions=tiles.map((tile,i)=>{
-  const row=Math.floor(i/columns),slot=i%columns,east=row%2===0;
-  const column=east?slot:columns-1-slot;
-  const corner=slot===columns-1&&i<tiles.length-1;
-  const direction=corner?'down':east?'east':'west';
-  const double=tile[0]===tile[1];
-  const angle=direction==='down'?(double?-90:0):(double?0:east?-90:90);
-  const vertical=angle===0;
-  return {x:padding+long/2+column*cell,y:padding+long/2+row*rowStep,width:vertical?short:long,height:vertical?long:short,angle,direction,double};
- });
- const rows=Math.ceil(tiles.length/columns);
- return {short,long,columns,width:Math.max(width,padding*2+columns*cell-gap),height:Math.max(150,padding*2+(rows?rows-1:0)*rowStep+long),positions};
+ const short=width<460?26:34,long=short*2,padding=12;
+ const left=padding+short/2,right=width-padding-short/2;
+ const positions=[];let direction='east',nextDirection='west',rowBottom=0;
+ function shape(tile,dir){
+  const double=tile[0]===tile[1],vertical=dir==='down'?!double:double;
+  return {width:vertical?short:long,height:vertical?long:short,angle:dir==='down'?(double?-90:0):(double?0:dir==='east'?-90:90),direction:dir,double};
+ }
+ for(const tile of tiles){
+  let p=shape(tile,direction);const prev=positions.at(-1);
+  if(!prev){p.x=left+p.width/2;p.y=padding+short;}
+  else if(direction==='down'){
+   const baseline=prev.y+prev.height/2-short/2;
+   if(baseline>=rowBottom+short){
+    direction=nextDirection;p=shape(tile,direction);const sign=direction==='east'?1:-1;
+    p.x=prev.x+sign*(prev.width+p.width)/2;p.y=baseline;rowBottom=p.y+p.height/2;
+   }else {p.x=prev.x;p.y=prev.y+(prev.height+p.height)/2;}
+  }else {
+   const sign=direction==='east'?1:-1;
+   const x=prev.x+sign*(prev.width+p.width)/2;
+   if(x-p.width/2>=left&&x+p.width/2<=right){p.x=x;p.y=prev.y;}
+   else {
+    nextDirection=direction==='east'?'west':'east';direction='down';p=shape(tile,direction);
+    p.x=prev.x+sign*(prev.width/2-short/2);p.y=prev.y+(prev.height+p.height)/2;
+   }
+  }
+  positions.push(p);
+  if(direction!=='down')rowBottom=Math.max(rowBottom,p.y+p.height/2);
+ }
+ return {short,long,width,columns:Math.max(2,Math.floor((right-left)/long)),height:Math.max(150,...positions.map(p=>p.y+p.height/2+padding)),positions};
 }

@@ -19,14 +19,6 @@ function renderBoard(){
  if(!state.board.length){board.textContent='Pembuka: balak 5';board.style.height='150px';return;}
  const layout=layoutBoard(state.board,Math.max(180,board.clientWidth));
  board.style.height=layout.height+'px';
- const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
- svg.classList.add('chain-links');svg.setAttribute('width','100%');svg.setAttribute('height',layout.height);
- for(let i=1;i<layout.positions.length;i++){
-  const a=layout.positions[i-1],b=layout.positions[i],line=document.createElementNS(svg.namespaceURI,'line');
-  for(const [k,v] of Object.entries({x1:a.x,y1:a.y,x2:b.x,y2:b.y}))line.setAttribute(k,v);
-  svg.append(line);
- }
- board.append(svg);
  state.board.forEach((t,i)=>{const e=tile(t),p=layout.positions[i];e.classList.add('board-tile');e.classList.toggle('double',p.double);e.dataset.index=i;e.dataset.direction=p.direction;e.dataset.double=p.double;e.tabIndex=-1;e.setAttribute('aria-disabled','true');e.setAttribute('aria-label',(p.double?'Balak ':'')+t[0]+' dan '+t[1]);e.style.width=layout.short+'px';e.style.height=layout.long+'px';e.style.left=p.x+'px';e.style.top=p.y+'px';e.style.transform='translate(-50%,-50%) rotate('+p.angle+'deg)';board.append(e);});
 }
 let resizeFrame;
