@@ -25,3 +25,5 @@ Node.js 22 atau lebih baru. Jalankan npm install, npm test, lalu npm run dev. np
 public/ berisi antarmuka dan kartu berbasis CSS. src/game.js berisi aturan dan timer, src/worker.js berisi server serta penyimpanan room. Pengujian ada di tests/. server.py dan index.html di root adalah versi Python terdahulu; tidak dipakai Cloudflare. render.yaml hanya konfigurasi hosting alternatif lama.
 
 Buat room baru setelah pembaruan aturan, terutama untuk room lama yang dibuka dengan dadu.
+
+Susunan meja mengikuti jalur berbelok: kartu biasa sejajar arah jalur dan balak tegak lurus terhadap jalur. Tata letak menyesuaikan lebar layar; kedua ujung tetap bisa disorot sebagai tujuan drag.

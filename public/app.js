@@ -1,3 +1,4 @@
+import {layoutBoard} from './board-layout.js';
 const $=id=>document.getElementById(id);
 let state=null,busy=false,selected=null,drag=null,clockOffset=0,expiredRefresh=0,suppressClickUntil=0;
 const pipPositions={0:[],1:[[50,50]],2:[[27,25],[73,75]],3:[[27,25],[50,50],[73,75]],4:[[27,25],[73,25],[27,75],[73,75]],5:[[27,25],[73,25],[50,50],[27,75],[73,75]],6:[[27,22],[73,22],[27,50],[73,50],[27,78],[73,78]]};
@@ -9,14 +10,31 @@ async function request(action,extra={},quiet=false){if(busy)return;busy=true;con
 function highlight(){const allowed=myTurn()&&selected!==null?legal(state.hand[selected]):[];for(const s of ['left','right']){$(s).disabled=!allowed.includes(s);$(s).classList.toggle('available',allowed.includes(s));}const tiles=[...$('board').querySelectorAll('.tile')];tiles.forEach(t=>t.classList.remove('endpoint'));if(allowed.includes('left'))tiles[0]?.classList.add('endpoint');if(allowed.includes('right'))tiles.at(-1)?.classList.add('endpoint');$('hand').querySelectorAll('.tile').forEach((t,i)=>t.classList.toggle('selected',i===selected));}
 function render(){if(!state)return;$('lobby').hidden=true;$('game').hidden=false;$('room').textContent=state.code;$('start').hidden=state.started||state.me!==0;$('start').disabled=![2,4].includes(state.players.length);$('restart').hidden=state.winners===null||state.me!==0;
 $('players').replaceChildren(...state.players.map((p,i)=>{const e=document.createElement('div');e.className='player'+(state.started&&state.winners===null&&state.turn===i?' active':'');e.textContent=p.name+(i===state.me?' (Anda)':'')+' · '+p.count+' kartu';return e}));
-$('board').replaceChildren(...state.board.map(t=>{const e=tile(t);e.tabIndex=-1;e.setAttribute('aria-disabled','true');return e}));if(!state.board.length)$('board').textContent='Pembuka: balak 5';
+renderBoard();
 $('hand').replaceChildren(...state.hand.map((t,i)=>{const e=tile(t),playable=myTurn()&&legal(t).length;e.disabled=!playable;e.classList.add(playable?'playable':'unplayable');e.onclick=()=>{if(Date.now()<suppressClickUntil)return;selected=i;highlight();};e.onpointerdown=event=>beginDrag(event,i,e);return e}));
 $('status').textContent=state.winners!==null?(state.winners.length?'Pemenang: '+state.winners.map(i=>state.players[i].name).join(', '):'Ronde berakhir. Mulai ronde baru.'):!state.started?'Menunggu 2 atau 4 pemain…':state.turn===state.me?'Giliran Anda':'Giliran '+state.players[state.turn].name;
 $('events').replaceChildren(...(state.events||[]).slice(-3).map(text=>{const e=document.createElement('div');e.textContent=text;return e}));$('hint').textContent=myTurn()?'Seret kartu yang menyala ke ujung meja yang disorot. Bisa juga pilih kartu lalu ketuk ujungnya.':'Kartu yang dapat dimainkan akan menyala saat giliran Anda.';highlight();tick();}
+function renderBoard(){
+ const board=$('board');board.replaceChildren();
+ if(!state.board.length){board.textContent='Pembuka: balak 5';board.style.height='150px';return;}
+ const layout=layoutBoard(state.board,Math.max(180,board.clientWidth));
+ board.style.height=layout.height+'px';
+ const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+ svg.classList.add('chain-links');svg.setAttribute('width','100%');svg.setAttribute('height',layout.height);
+ for(let i=1;i<layout.positions.length;i++){
+  const a=layout.positions[i-1],b=layout.positions[i],line=document.createElementNS(svg.namespaceURI,'line');
+  for(const [k,v] of Object.entries({x1:a.x,y1:a.y,x2:b.x,y2:b.y}))line.setAttribute(k,v);
+  svg.append(line);
+ }
+ board.append(svg);
+ state.board.forEach((t,i)=>{const e=tile(t),p=layout.positions[i];e.classList.add('board-tile');e.classList.toggle('double',p.double);e.dataset.index=i;e.dataset.direction=p.direction;e.dataset.double=p.double;e.tabIndex=-1;e.setAttribute('aria-disabled','true');e.setAttribute('aria-label',(p.double?'Balak ':'')+t[0]+' dan '+t[1]);e.style.width=layout.short+'px';e.style.height=layout.long+'px';e.style.left=p.x+'px';e.style.top=p.y+'px';e.style.transform='translate(-50%,-50%) rotate('+p.angle+'deg)';board.append(e);});
+}
+let resizeFrame;
+new ResizeObserver(()=>{cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(()=>{if(state?.board&&!drag){renderBoard();highlight();}});}).observe($('board'));
 function beginDrag(event,index,element){if(!myTurn()||!legal(state.hand[index]).length||busy||event.button!==0)return;selected=index;highlight();drag={index,x:event.clientX,y:event.clientY,turnId:state.turnId,ghost:null};try{element.setPointerCapture(event.pointerId)}catch{};}
 function cancelDrag(){drag?.ghost?.remove();drag=null;for(const s of ['left','right'])$(s).classList.remove('hover');}
 document.addEventListener('pointermove',event=>{if(!drag)return;if(!drag.ghost&&Math.hypot(event.clientX-drag.x,event.clientY-drag.y)>6){drag.ghost=tile(state.hand[drag.index]);drag.ghost.classList.add('ghost');document.body.append(drag.ghost);}if(drag.ghost){event.preventDefault();drag.ghost.style.left=event.clientX-25+'px';drag.ghost.style.top=event.clientY-50+'px';const side=dropSide(event.clientX,event.clientY);for(const s of ['left','right'])$(s).classList.toggle('hover',s===side);}}, {passive:false});
-function dropSide(x,y){const node=document.elementFromPoint(x,y);for(const s of ['left','right'])if(node?.closest('#'+s)&&!$(s).disabled)return s;const end=node?.closest('#board .tile.endpoint');if(end){const tiles=[...$('board').children];const options=legal(state.hand[selected]);if(tiles.length===1)return options.length===1?options[0]:(x<end.getBoundingClientRect().left+end.offsetWidth/2?'left':'right');return end===tiles[0]?'left':'right';}return null;}
+function dropSide(x,y){const node=document.elementFromPoint(x,y);for(const s of ['left','right'])if(node?.closest('#'+s)&&!$(s).disabled)return s;const end=node?.closest('#board .tile.endpoint');if(end){const tiles=[...$('board').querySelectorAll('.tile')];const options=legal(state.hand[selected]);if(tiles.length===1)return options.length===1?options[0]:(x<end.getBoundingClientRect().left+end.offsetWidth/2?'left':'right');return end===tiles[0]?'left':'right';}return null;}
 document.addEventListener('pointerup',event=>{if(!drag)return;const moved=!!drag.ghost,side=moved?dropSide(event.clientX,event.clientY):null;if(moved)suppressClickUntil=Date.now()+250;cancelDrag();if(side)play(side);else if(moved)render();});document.addEventListener('pointercancel',()=>{cancelDrag();if(state)render();});
 function play(side){if(selected===null||!myTurn()||busy)return;const i=selected;selected=null;request('play',{tile:i,side,turnId:state.turnId});}
 for(const side of ['left','right'])$(side).onclick=()=>play(side);
@@ -25,3 +43,4 @@ for(const mode of ['create','join'])$(mode).onclick=()=>{if(!$('name').value.tri
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(location.origin+'/?room='+state.code);$('message').textContent='Undangan disalin.'}catch{$('message').textContent='Bagikan alamat web dan kode: '+state.code}};
 $('leave').onclick=()=>{cancelDrag();sessionStorage.removeItem('domino-session');state=null;selected=null;$('game').hidden=true;$('lobby').hidden=false;$('message').textContent='Kursi tetap tersimpan di room sebelumnya.'};$('code').value=new URLSearchParams(location.search).get('room')||'';try{state=JSON.parse(sessionStorage.getItem('domino-session'));if(state)request('state')}catch{sessionStorage.removeItem('domino-session')}
 setInterval(()=>{if(state&&!document.hidden&&!drag)request('state',{},true)},1500);setInterval(tick,150);document.addEventListener('visibilitychange',()=>{if(state&&!document.hidden)request('state',{},true)});
+
